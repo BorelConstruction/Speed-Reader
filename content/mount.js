@@ -12,8 +12,9 @@
     if (NS._active) NS._active.destroy();
   };
 
-  NS.open = function open(text) {
-    if (!text || !String(text).trim()) return;
+  /* `payload` is a plain string or { blocks: [...] } — see lib/rsvp.js. */
+  NS.open = function open(payload) {
+    if (NS.Rsvp.isEmpty(payload)) return;
 
     NS.close();
 
@@ -33,7 +34,7 @@
     NS.Settings.load().then(function (settings) {
       if (!host.isConnected) return;
       NS._active = NS.createReader(host, {
-        text: text,
+        text: payload,
         settings: settings,
         autoplay: false,        // open on the first word; Space starts it
         onClose: function () {

@@ -75,7 +75,52 @@ function showToast(message) {
   setTimeout(function () { node.remove(); }, 2400);
 }
 
+/* A reader payload is either a plain string or { blocks: [...] }. Blocks carry
+ * the heading/bold flags that let the reader pause on (sub)titles. */
+function isEmptyPayload(payload) {
+  if (!payload) return true;
+  if (typeof payload === 'string') return !payload.trim();
+  if (!Array.isArray(payload.blocks)) return true;
+  return !payload.blocks.some(function (block) {
+    return block && typeof block.text === 'string' && block.text.trim();
+  });
+}
+
+/* Inject content/extract.js and call one of its entry points. */
+async function extract(tabId, frameId, method) {
+  var target = typeof frameId === 'number'
+    ? { tabId: tabId, frameIds: [frameId] }
+    : { tabId: tabId, allFrames: true };
+
+  try {
+    await chrome.scripting.executeScript({ target: target, files: ['content/extract.js'] });
+    var results = await chrome.scripting.executeScript({
+      target: target,
+      func: function (name) { return window.SpeedReader[name](); },
+      args: [method]
+    });
+    for (var i = 0; i < results.length; i++) {
+      var value = results[i] && results[i].result;
+      if (!isEmptyPayload(value)) return value;
+    }
+  } catch (err) {
+    /* restricted page, or the frame went away */
+  }
+  return null;
+}
+
 async function readSelection(tabId, frameId) {
+  var structured = await extract(tabId, frameId, 'blocksFromSelection');
+  if (structured) return structured;
+
+  // Flat fallback for frames where extract.js couldn't run. Loses headings,
+  // but the tokenizer's own heuristics still get a shot at the line breaks.
+  return await selectionText(tabId, frameId);
+}
+
+/* Plain-string selection — also what the popup shows as a preview, where
+ * injecting the extractor just to count words would be wasteful. */
+async function selectionText(tabId, frameId) {
   var target = typeof frameId === 'number'
     ? { tabId: tabId, frameIds: [frameId] }
     : { tabId: tabId, allFrames: true };
@@ -97,18 +142,7 @@ async function readSelection(tabId, frameId) {
  * the frame that was clicked, and pull everything from there to the end of the
  * surrounding article. */
 async function readFromHere(tabId, frameId) {
-  var target = { tabId: tabId, frameIds: [typeof frameId === 'number' ? frameId : 0] };
-  try {
-    await chrome.scripting.executeScript({ target: target, files: ['content/extract.js'] });
-    var results = await chrome.scripting.executeScript({
-      target: target,
-      func: function () { return window.SpeedReader.textFromHere(); }
-    });
-    if (results && results[0] && typeof results[0].result === 'string') return results[0].result;
-  } catch (err) {
-    /* restricted page, or the frame went away */
-  }
-  return '';
+  return await extract(tabId, typeof frameId === 'number' ? frameId : 0, 'blocksFromHere') || '';
 }
 
 async function toast(tabId, message) {
@@ -125,8 +159,8 @@ async function toast(tabId, message) {
 
 /* Inject the reader into the top frame of `tabId` and hand it the text.
  * Re-injection is safe: every file is wrapped in an IIFE. */
-async function startReading(tabId, text, emptyMessage) {
-  if (!text || !text.trim()) {
+async function startReading(tabId, payload, emptyMessage) {
+  if (isEmptyPayload(payload)) {
     await toast(tabId, emptyMessage || 'SpeedReader: select some text first.');
     return { ok: false, error: 'no-text' };
   }
@@ -138,8 +172,8 @@ async function startReading(tabId, text, emptyMessage) {
     });
     await chrome.scripting.executeScript({
       target: { tabId: tabId, frameIds: [0] },
-      func: function (payload) { window.SpeedReader.open(payload); },
-      args: [text]
+      func: function (value) { window.SpeedReader.open(value); },
+      args: [payload]
     });
     return { ok: true };
   } catch (err) {
@@ -159,7 +193,8 @@ chrome.contextMenus.onClicked.addListener(async function (info, tab) {
 
   if (info.menuItemId === MENU_SELECTION) {
     var selected = await readSelection(tab.id, info.frameId);
-    await startReading(tab.id, selected || info.selectionText || '');
+    if (isEmptyPayload(selected)) selected = info.selectionText || '';
+    await startReading(tab.id, selected);
     return;
   }
 
@@ -174,19 +209,25 @@ chrome.commands.onCommand.addListener(async function (command) {
   var tab = await activeTab();
   if (!tab || tab.id == null) return;
   if (!canInject(tab.url)) return;
-  var text = await readSelection(tab.id);
-  if (!text.trim()) text = await readFromHere(tab.id, 0);   // fall back to the caret
-  await startReading(tab.id, text, NOTHING_HERE);
+  var payload = await readSelection(tab.id);
+  if (isEmptyPayload(payload)) payload = await readFromHere(tab.id, 0);   // fall back to the caret
+  await startReading(tab.id, payload, NOTHING_HERE);
 });
 
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
   if (!message || typeof message.type !== 'string') return undefined;
 
   if (message.type === 'sr-start') {
-    // From the in-page Shift+R listener, with a selection.
+    // From the in-page Shift+R listener, with a selection. The selection is
+    // still live, so re-read it structurally; message.text is the fallback for
+    // frames the extractor can't reach.
     var tabId = sender.tab && sender.tab.id;
     if (tabId == null) return undefined;
-    startReading(tabId, message.text || '').then(sendResponse);
+    (async function () {
+      var payload = await readSelection(tabId, sender.frameId);
+      if (isEmptyPayload(payload)) payload = message.text || '';
+      sendResponse(await startReading(tabId, payload));
+    })();
     return true;
   }
 
@@ -210,8 +251,11 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
         id = tab && tab.id;
       }
       if (id == null) { sendResponse({ ok: false, error: 'no-tab' }); return; }
-      var text = message.text || await readSelection(id);
-      sendResponse(await startReading(id, text));
+      // The popup passes the plain text it previewed; prefer a structured
+      // re-read of the same (still live) selection so headings survive.
+      var payload = await readSelection(id);
+      if (isEmptyPayload(payload)) payload = message.text || '';
+      sendResponse(await startReading(id, payload));
     })();
     return true;
   }
@@ -224,7 +268,7 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
         id = tab && tab.id;
       }
       if (id == null) { sendResponse({ text: '' }); return; }
-      sendResponse({ text: await readSelection(id) });
+      sendResponse({ text: await selectionText(id) });
     })();
     return true;
   }

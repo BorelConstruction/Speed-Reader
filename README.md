@@ -6,7 +6,7 @@ the words flash by one at a time in a fixed spot — so your eyes stop hopping a
 the line and simply hold still.
 
 Each word's focal letter (its *optimal recognition point*) is highlighted in red and
-pinned to the exact same pixel, whatever the word's length. Unlike many other readers, the
+pinned to the exact same pixel, whatever the word's length. Unlike with many other readers, the
 words either side stay faintly visible, so you keep the thread of the sentence.
 
 Manifest V3, plain JavaScript, **no build step** — clone it and load the folder.
@@ -98,9 +98,35 @@ punctuation. It sits in its own flex item between two equal-width halves, so it 
 on the same pixel every time regardless of the font.
 
 **Timing.** Each word gets a base beat of `60000 / wpm` milliseconds, then a
-multiplier: ×2.1 at the end of a sentence, ×2.6 at a paragraph break, ×1.5 after a
-comma, ×1.25 for numbers, plus a little extra for long words. The timer is re-armed
-per word rather than run on an interval, so a speed change lands on the very next word.
+multiplier: ×4.2 at the end of a title, ×3.2 on the word before one, ×2.6 at a
+paragraph break, ×2.1 at the end of a sentence, ×1.5 after a comma, ×1.25 for
+numbers, ×1.2 for anything inside a title, plus a little extra for long words. At
+350 wpm that puts an ordinary word at ~170 ms and the last word of a heading at
+~860 ms. The timer is re-armed per word rather than run on an interval, so a speed
+change lands on the very next word.
+
+**(Sub)titles.** Headings get held about five times as long as an ordinary word,
+with a beat of run-up on the line before them, and they stay **bold** — including
+once they've drifted out into the dimmed context, so you can see at a glance where
+a section began.
+
+Which lines count as titles is settled by whatever evidence is available:
+
+- *Markup, when there is any.* `<h1>`–`<h6>`, `role="heading"`, `<dt>`, `<summary>`
+  and `<legend>` are titles outright. `<li>`, `<td>` and `<th>` are outright **not** —
+  the browser strips their bullet markers, so nothing downstream could tell.
+- *Weight.* `<strong>`, `<b>`, or any computed `font-weight` of 600 or more is a hint
+  rather than a verdict: it roughly doubles how long a line may be and still read as
+  a title.
+- *Shape*, for pasted text and anything the markup didn't settle. The strongest
+  signal is the one you'd expect: **a line break with no sentence-finishing
+  punctuation.** A block qualifies if it's short (≤ 12 words, or ≤ 22 when bold),
+  doesn't end in `.` `!` `?` `…` `,` `;`, isn't a bullet or numbered item, contains no
+  internal sentence boundary, and has something under it — a title with nothing
+  following it is just a dangling last line.
+
+Boldness is reconstructed rather than merely preserved, so it survives a trip through
+plain text and there's never a need to fall back on shouting in capitals.
 
 **Sentences.** Detected from `.` `!` `?` `…`, with the usual traps handled:
 abbreviations (`Dr.`, `e.g.`), initials (`J. R.`), decimals (`3.50`), and list markers
@@ -110,14 +136,10 @@ still counts.
 **Long words.** Anything over 13 characters is broken into hyphenated chunks, so the
 line never has to shrink. The chunks rejoin seamlessly in the context strip.
 
-**"From here".** `chrome.contextMenus` doesn't report where the click landed, so
-`content/hotkey.js` records each `contextmenu` event's coordinates and
-`caretRangeFromPoint()` converts them into an exact text node and character offset —
-then rewinds to the start of that word, so you never begin mid-word. Reading runs to
+**"From here".** Reading runs to
 the end of the nearest `<article>` / `<main>` / `[role="main"]`, or of `<body>` if the
 page has no such container, skipping `nav`, `aside`, `footer`, forms, controls and
-anything not rendered. The one exception is the element you actually pointed at: if
-you right-click inside a nav, it reads on from there rather than refusing.
+anything not rendered.
 
 ## Layout
 
@@ -125,10 +147,10 @@ you right-click inside a nav, it reads on from there rather than refusing.
 manifest.json
 background.js          service worker — context menu, shortcut, on-demand injection
 lib/settings.js        defaults, storage, live change notifications
-lib/rsvp.js            tokenizer, sentence detection, focal letter, timing
+lib/rsvp.js            tokenizer, sentence + title detection, focal letter, timing
 lib/reader-ui.js       the reader component (shadow DOM, controls, keyboard)
 content/hotkey.js      the only always-on script: Shift+R, and where you right-clicked
-content/extract.js     injected on demand — "read from here" text extraction
+content/extract.js     injected on demand — page text as blocks, headings marked
 content/mount.js       injected on demand — mounts the overlay
 popup/                 toolbar popup
 options/               settings page with a live preview
