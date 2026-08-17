@@ -1,12 +1,12 @@
 # SpeedReader
 
 An RSVP speed-reading extension for Chrome and Edge, in the style of
-[Reedy](https://github.com/nicksergeant/reedy). Select text anywhere, hit a key, and
+[Reedy](https://chromewebstore.google.com/detail/speed-reading/ihbdojmggkmjbhfflnchljfkgdhokffj). Select text anywhere, hit a key, and
 the words flash by one at a time in a fixed spot — so your eyes stop hopping across
 the line and simply hold still.
 
 Each word's focal letter (its *optimal recognition point*) is highlighted in red and
-pinned to the exact same pixel, whatever the word's length. Unlike AccelaReader, the
+pinned to the exact same pixel, whatever the word's length. Unlike many other readers, the
 words either side stay faintly visible, so you keep the thread of the sentence.
 
 Manifest V3, plain JavaScript, **no build step** — clone it and load the folder.
@@ -45,9 +45,6 @@ Any of these:
   you're on a page extensions can't touch.
 - **`Alt`+`Shift`+`R`** — a browser-level shortcut, useful when a page swallows
   keystrokes. Rebind it at `chrome://extensions/shortcuts`.
-
-The reader opens paused on the first word, so you get a moment to settle before
-anything moves. Press `Space` (or the play button, which already has focus) to go.
 
 "From here" is also offered when you *do* have a selection, and then it anchors to
 the start of that selection rather than to the pointer — so if a page makes precise
