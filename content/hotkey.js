@@ -1,13 +1,20 @@
 /* SpeedReader — the only script that runs on every page.
  *
- * It listens for Shift+R and nothing else; the reader itself is injected on
- * demand by the service worker. Chrome's commands API can't bind a bare
- * Shift+R (it insists on Ctrl or Alt), so this has to be a page listener. */
+ * Two jobs, both tiny: listen for Shift+R, and remember where you last
+ * right-clicked. The reader itself is injected on demand by the service
+ * worker. Chrome's commands API can't bind a bare Shift+R (it insists on Ctrl
+ * or Alt), so the hotkey has to be a page listener. */
 (function () {
   'use strict';
 
   if (window.__SPEEDREADER_HOTKEY__) return;
   window.__SPEEDREADER_HOTKEY__ = true;
+
+  /* chrome.contextMenus.onClicked doesn't tell us where the click landed, so
+   * stash it here; content/extract.js turns it into a text position. */
+  window.addEventListener('contextmenu', function (event) {
+    window.__SPEEDREADER_POINT__ = { x: event.clientX, y: event.clientY, at: Date.now() };
+  }, true);
 
   function isEditable(node) {
     if (!node || node.nodeType !== 1) return false;
@@ -28,19 +35,28 @@
     var path = event.composedPath ? event.composedPath() : [event.target];
     if (isEditable(path[0] || event.target) || isEditable(document.activeElement)) return;
 
-    var selection = '';
-    try {
-      selection = window.getSelection ? String(window.getSelection()) : '';
-    } catch (err) {
-      selection = '';
+    var selection = null;
+    try { selection = window.getSelection(); } catch (err) { selection = null; }
+
+    var text = selection ? String(selection) : '';
+    var message;
+
+    if (text.trim()) {
+      message = { type: 'sr-start', text: text };
+    } else if (selection && selection.rangeCount &&
+               selection.getRangeAt(0).startContainer.nodeType === 3) {
+      // Nothing highlighted, but clicking on a page leaves a collapsed caret —
+      // read from there to the end of the article instead of doing nothing.
+      message = { type: 'sr-start-here' };
+    } else {
+      return;
     }
-    if (!selection.trim()) return;
 
     event.preventDefault();
     event.stopPropagation();
 
     try {
-      chrome.runtime.sendMessage({ type: 'sr-start', text: selection }, function () {
+      chrome.runtime.sendMessage(message, function () {
         void chrome.runtime.lastError;   // the worker may answer after we're gone
       });
     } catch (err) {

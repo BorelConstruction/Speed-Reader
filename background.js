@@ -12,7 +12,8 @@ var READER_FILES = [
   'content/mount.js'
 ];
 
-var MENU_ID = 'sr-read-selection';
+var MENU_SELECTION = 'sr-read-selection';
+var MENU_HERE = 'sr-read-here';
 
 /* file: is deliberately absent — it works once "Allow access to file URLs" is
  * ticked on the extension's details page, and fails harmlessly otherwise. */
@@ -27,10 +28,19 @@ function canInject(url) {
 chrome.runtime.onInstalled.addListener(function () {
   chrome.contextMenus.removeAll(function () {
     void chrome.runtime.lastError;
+
     chrome.contextMenus.create({
-      id: MENU_ID,
+      id: MENU_SELECTION,
       title: 'Speed read selection',
       contexts: ['selection']
+    }, function () { void chrome.runtime.lastError; });
+
+    // Also offered alongside a selection: highlighting a word or two and
+    // choosing this reads on from there rather than reading just the highlight.
+    chrome.contextMenus.create({
+      id: MENU_HERE,
+      title: 'Speed read from here',
+      contexts: ['page', 'link', 'selection']
     }, function () { void chrome.runtime.lastError; });
   });
 });
@@ -83,6 +93,24 @@ async function readSelection(tabId, frameId) {
   return '';
 }
 
+/* "Read from here": resolve the click (or selection) into a text position in
+ * the frame that was clicked, and pull everything from there to the end of the
+ * surrounding article. */
+async function readFromHere(tabId, frameId) {
+  var target = { tabId: tabId, frameIds: [typeof frameId === 'number' ? frameId : 0] };
+  try {
+    await chrome.scripting.executeScript({ target: target, files: ['content/extract.js'] });
+    var results = await chrome.scripting.executeScript({
+      target: target,
+      func: function () { return window.SpeedReader.textFromHere(); }
+    });
+    if (results && results[0] && typeof results[0].result === 'string') return results[0].result;
+  } catch (err) {
+    /* restricted page, or the frame went away */
+  }
+  return '';
+}
+
 async function toast(tabId, message) {
   try {
     await chrome.scripting.executeScript({
@@ -97,10 +125,10 @@ async function toast(tabId, message) {
 
 /* Inject the reader into the top frame of `tabId` and hand it the text.
  * Re-injection is safe: every file is wrapped in an IIFE. */
-async function startReading(tabId, text) {
+async function startReading(tabId, text, emptyMessage) {
   if (!text || !text.trim()) {
-    await toast(tabId, 'SpeedReader: select some text first.');
-    return { ok: false, error: 'no-selection' };
+    await toast(tabId, emptyMessage || 'SpeedReader: select some text first.');
+    return { ok: false, error: 'no-text' };
   }
 
   try {
@@ -124,10 +152,21 @@ async function activeTab() {
   return tabs && tabs[0] ? tabs[0] : null;
 }
 
+var NOTHING_HERE = 'SpeedReader: no readable text at that spot.';
+
 chrome.contextMenus.onClicked.addListener(async function (info, tab) {
-  if (info.menuItemId !== MENU_ID || !tab || tab.id == null) return;
-  var text = await readSelection(tab.id, info.frameId);
-  await startReading(tab.id, text || info.selectionText || '');
+  if (!tab || tab.id == null) return;
+
+  if (info.menuItemId === MENU_SELECTION) {
+    var selected = await readSelection(tab.id, info.frameId);
+    await startReading(tab.id, selected || info.selectionText || '');
+    return;
+  }
+
+  if (info.menuItemId === MENU_HERE) {
+    var onward = await readFromHere(tab.id, info.frameId);
+    await startReading(tab.id, onward, NOTHING_HERE);
+  }
 });
 
 chrome.commands.onCommand.addListener(async function (command) {
@@ -136,17 +175,29 @@ chrome.commands.onCommand.addListener(async function (command) {
   if (!tab || tab.id == null) return;
   if (!canInject(tab.url)) return;
   var text = await readSelection(tab.id);
-  await startReading(tab.id, text);
+  if (!text.trim()) text = await readFromHere(tab.id, 0);   // fall back to the caret
+  await startReading(tab.id, text, NOTHING_HERE);
 });
 
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
   if (!message || typeof message.type !== 'string') return undefined;
 
   if (message.type === 'sr-start') {
-    // From the in-page Shift+R listener.
+    // From the in-page Shift+R listener, with a selection.
     var tabId = sender.tab && sender.tab.id;
     if (tabId == null) return undefined;
     startReading(tabId, message.text || '').then(sendResponse);
+    return true;
+  }
+
+  if (message.type === 'sr-start-here') {
+    // Shift+R with only a caret: read on from wherever it sits.
+    var hereTabId = sender.tab && sender.tab.id;
+    if (hereTabId == null) return undefined;
+    (async function () {
+      var text = await readFromHere(hereTabId, sender.frameId);
+      sendResponse(await startReading(hereTabId, text, NOTHING_HERE));
+    })();
     return true;
   }
 

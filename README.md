@@ -32,6 +32,11 @@ that only attaches to pages loaded after the extension was installed.
 
 Any of these:
 
+- **Right-click where you want to begin and choose "Speed read from here"** —
+  no selecting required. It starts at the word under the pointer and runs to the
+  end of the article.
+- **Click where you want to begin, then press `Shift`+`R`.** A plain click leaves a
+  caret behind, and with nothing highlighted `Shift`+`R` reads on from it.
 - **Select text and press `Shift`+`R`.**
 - **Select text, right-click, choose "Speed read selection".**
 - **Click the toolbar icon** → "Read selection on this page".
@@ -43,6 +48,11 @@ Any of these:
 
 The reader opens paused on the first word, so you get a moment to settle before
 anything moves. Press `Space` (or the play button, which already has focus) to go.
+
+"From here" is also offered when you *do* have a selection, and then it anchors to
+the start of that selection rather than to the pointer — so if a page makes precise
+clicking awkward, highlight a single character to mark the spot and pick "Speed read
+from here" instead of "Speed read selection".
 
 ## Keys while reading
 
@@ -103,6 +113,15 @@ still counts.
 **Long words.** Anything over 13 characters is broken into hyphenated chunks, so the
 line never has to shrink. The chunks rejoin seamlessly in the context strip.
 
+**"From here".** `chrome.contextMenus` doesn't report where the click landed, so
+`content/hotkey.js` records each `contextmenu` event's coordinates and
+`caretRangeFromPoint()` converts them into an exact text node and character offset —
+then rewinds to the start of that word, so you never begin mid-word. Reading runs to
+the end of the nearest `<article>` / `<main>` / `[role="main"]`, or of `<body>` if the
+page has no such container, skipping `nav`, `aside`, `footer`, forms, controls and
+anything not rendered. The one exception is the element you actually pointed at: if
+you right-click inside a nav, it reads on from there rather than refusing.
+
 ## Layout
 
 ```
@@ -111,7 +130,8 @@ background.js          service worker — context menu, shortcut, on-demand inje
 lib/settings.js        defaults, storage, live change notifications
 lib/rsvp.js            tokenizer, sentence detection, focal letter, timing
 lib/reader-ui.js       the reader component (shadow DOM, controls, keyboard)
-content/hotkey.js      the only always-on script: listens for Shift+R
+content/hotkey.js      the only always-on script: Shift+R, and where you right-clicked
+content/extract.js     injected on demand — "read from here" text extraction
 content/mount.js       injected on demand — mounts the overlay
 popup/                 toolbar popup
 options/               settings page with a live preview
