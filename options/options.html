@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SpeedReader — Settings</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <main>
+    <header class="head">
+      <span class="mark" aria-hidden="true"><i></i><b></b><i></i></span>
+      <div>
+        <h1>SpeedReader</h1>
+        <p class="sub">RSVP speed reading. Changes save as you make them and apply to any reader you already have open.</p>
+      </div>
+    </header>
+
+    <section class="card preview-card">
+      <h2>Live preview</h2>
+      <div id="preview"></div>
+    </section>
+
+    <section class="card">
+      <h2>Reading</h2>
+      <div id="fields-reading" class="fields"></div>
+    </section>
+
+    <section class="card">
+      <h2>Appearance</h2>
+      <div id="fields-appearance" class="fields"></div>
+    </section>
+
+    <section class="card">
+      <h2>How to start reading</h2>
+      <ul class="list">
+        <li>Select text on any page and press <kbd>Shift</kbd>+<kbd>R</kbd>.</li>
+        <li>Select text, right-click, choose <em>Speed read selection</em>.</li>
+        <li>Click the toolbar icon and use <em>Read selection on this page</em>, or paste text in.</li>
+        <li>Or use the browser shortcut <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd>
+          (rebindable at <span class="path">chrome://extensions/shortcuts</span>).</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Keys while reading</h2>
+      <table class="keys">
+        <tbody>
+          <tr><td><kbd>Space</kbd></td><td>Play / pause</td></tr>
+          <tr><td><kbd>A</kbd> <kbd>S</kbd></td><td>Slower / faster (hold <kbd>Shift</kbd> for bigger steps)</td></tr>
+          <tr><td><kbd>&larr;</kbd> <kbd>&rarr;</kbd></td><td>One word back / forward</td></tr>
+          <tr><td><kbd>&uarr;</kbd> <kbd>&darr;</kbd></td><td>Previous / next sentence</td></tr>
+          <tr><td><kbd>Home</kbd> <kbd>End</kbd></td><td>Jump to the start / end</td></tr>
+          <tr><td><kbd>Esc</kbd></td><td>Close the reader</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <footer class="foot">
+      <button id="reset" class="reset" type="button">Reset everything to defaults</button>
+      <span class="saved" id="saved" aria-live="polite"></span>
+    </footer>
+  </main>
+
+  <script src="../lib/settings.js"></script>
+  <script src="../lib/rsvp.js"></script>
+  <script src="../lib/reader-ui.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

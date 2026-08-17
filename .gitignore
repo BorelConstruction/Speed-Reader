@@ -1,0 +1,27 @@
+# Claude Code's per-machine settings (absolute paths, personal permissions).
+# .claude/settings.json — the shared one — is deliberately NOT ignored.
+.claude/settings.local.json
+
+# Packaging output from chrome://extensions "Pack extension".
+# The .pem is the signing key for the extension's ID — never commit it.
+*.pem
+*.crx
+*.zip
+
+# Scratch harnesses used to eyeball pages outside the extension sandbox.
+_preview*.html
+
+# Not needed today (make-icons.mjs has no dependencies), but cheap insurance.
+node_modules/
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini

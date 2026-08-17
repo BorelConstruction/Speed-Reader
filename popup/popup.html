@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>SpeedReader</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header class="head">
+    <span class="mark" aria-hidden="true"><i></i><b></b><i></i></span>
+    <h1>SpeedReader</h1>
+    <button id="options" class="icon" type="button" title="Settings" aria-label="Settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true">
+        <path d="M4 7.5h8.5M17.5 7.5H20M4 16.5h3.5M12.5 16.5H20"/>
+        <circle cx="15" cy="7.5" r="2.4"/><circle cx="10" cy="16.5" r="2.4"/>
+      </svg>
+    </button>
+  </header>
+
+  <button id="read-selection" class="primary" type="button">
+    <span class="primary-title">Read selection on this page</span>
+    <span class="primary-sub" id="selection-note">Checking…</span>
+  </button>
+
+  <div class="rule"><span>or paste text</span></div>
+
+  <textarea id="paste" rows="6" spellcheck="false"
+            placeholder="Paste or type anything here, then hit Read (Ctrl+Enter)."></textarea>
+
+  <button id="read-paste" class="secondary" type="button" disabled>Read pasted text</button>
+
+  <div class="speed">
+    <label for="wpm">Speed</label>
+    <input id="wpm" type="range" min="100" max="1000" step="10" value="350">
+    <output id="wpm-out" for="wpm">350 wpm</output>
+  </div>
+
+  <p class="tip">
+    On any page: select text and press <kbd>Shift</kbd>+<kbd>R</kbd>, or right-click &rarr;
+    <em>Speed read selection</em>.
+  </p>
+
+  <script src="../lib/settings.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

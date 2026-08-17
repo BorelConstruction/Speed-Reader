@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>SpeedReader</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #0a0c0f; }
+    #paste-fallback {
+      position: fixed; inset: 0; display: none; flex-direction: column;
+      align-items: center; justify-content: center; gap: 14px; padding: 24px;
+      font: 14px/1.5 "Segoe UI", -apple-system, Roboto, Helvetica, Arial, sans-serif;
+      color: #f2f4f7; background: #0a0c0f;
+    }
+    #paste-fallback.show { display: flex; }
+    #paste-fallback h1 { font-size: 16px; font-weight: 600; margin: 0; }
+    #paste-fallback textarea {
+      width: min(620px, 90vw); height: 190px; padding: 12px 14px; resize: vertical;
+      border: 1px solid #272b33; border-radius: 12px; background: #15181d; color: #f2f4f7;
+      font: inherit; line-height: 1.55;
+    }
+    #paste-fallback button {
+      padding: 10px 20px; border: 0; border-radius: 10px; background: #e5484d;
+      color: #fff; font: inherit; font-weight: 600; cursor: pointer;
+    }
+    #paste-fallback button:hover { filter: brightness(1.07); }
+  </style>
+</head>
+<body>
+  <div id="host"></div>
+
+  <div id="paste-fallback">
+    <h1>Nothing to read yet</h1>
+    <textarea id="fallback-text" spellcheck="false" placeholder="Paste text here…"></textarea>
+    <button id="fallback-go" type="button">Start reading</button>
+  </div>
+
+  <script src="../lib/settings.js"></script>
+  <script src="../lib/rsvp.js"></script>
+  <script src="../lib/reader-ui.js"></script>
+  <script src="reader.js"></script>
+</body>
+</html>
