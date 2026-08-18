@@ -99,8 +99,9 @@ on the same pixel every time regardless of the font.
 
 **Timing.** Each word gets a base beat of `60000 / wpm` milliseconds, then a
 multiplier: ×4.2 at the end of a title, ×3.2 on the word before one, ×2.6 at a
-paragraph break, ×2.1 at the end of a sentence, ×1.5 after a comma, ×1.25 for
-numbers, ×1.2 for anything inside a title, plus a little extra for long words. At
+paragraph break, ×2.1 at the end of a sentence, ×1.5 after a comma, ×1.4 for a
+collapsed link, ×1.25 for numbers, ×1.2 for anything inside a title, plus a little
+extra for long words. At
 350 wpm that puts an ordinary word at ~170 ms and the last word of a heading at
 ~860 ms. The timer is re-armed per word rather than run on an interval, so a speed
 change lands on the very next word.
@@ -115,18 +116,34 @@ Which lines count as titles is settled by whatever evidence is available:
 - *Markup, when there is any.* `<h1>`–`<h6>`, `role="heading"`, `<dt>`, `<summary>`
   and `<legend>` are titles outright. `<li>`, `<td>` and `<th>` are outright **not** —
   the browser strips their bullet markers, so nothing downstream could tell.
-- *Weight.* `<strong>`, `<b>`, or any computed `font-weight` of 600 or more is a hint
-  rather than a verdict: it roughly doubles how long a line may be and still read as
-  a title.
+- *Weight.* `<strong>`, `<b>`, or any computed `font-weight` of 600 or more is a hint.
 - *Shape*, for pasted text and anything the markup didn't settle. The strongest
-  signal is the one you'd expect: **a line break with no sentence-finishing
+  signal: **a line break with no sentence-finishing
   punctuation.** A block qualifies if it's short (≤ 12 words, or ≤ 22 when bold),
   doesn't end in `.` `!` `?` `…` `,` `;`, isn't a bullet or numbered item, contains no
-  internal sentence boundary, and has something under it — a title with nothing
-  following it is just a dangling last line.
+  internal sentence boundary, and has something under it.
 
-Boldness is reconstructed rather than merely preserved, so it survives a trip through
-plain text and there's never a need to fall back on shouting in capitals.
+**Links.** A URL spelled out letter by letter is unreadable at any speed, so it
+collapses to a single token that names the scheme and elides the rest:
+
+```
+https://archive.example.org/collections/2019/albums?format=csv&page=3   →  https/…
+www.example-mirror.net                                                  →  www/…
+example.com/page                                                        →  link/…
+```
+
+That one is worth being precise about: it collapses URL-shaped **text**, not `<a>`
+elements. A link whose text reads as words — "the original paper" — is usually the
+most meaningful phrase in the sentence and is left exactly as it is.
+
+Things that merely look slashy stay put: `and/or`, `24/7`, `U.S./UK`,
+`src/lib/rsvp.js`, `input.value/2`, `3.5/10`. A host with no scheme has to show a
+recognised TLD *and* a path before it's believed; `https://` and `www.` are taken at
+face value. A bare `example.com` with no path reads fine as-is, so it's left alone.
+
+Brackets and the closing full stop are dropped — `https/…` beats `(https/…).`, and
+the ellipsis already says something was elided — but whether the URL ended a sentence
+is tracked separately, so the sentence break survives.
 
 **Sentences.** Detected from `.` `!` `?` `…`, with the usual traps handled:
 abbreviations (`Dr.`, `e.g.`), initials (`J. R.`), decimals (`3.50`), and list markers
@@ -147,7 +164,7 @@ anything not rendered.
 manifest.json
 background.js          service worker — context menu, shortcut, on-demand injection
 lib/settings.js        defaults, storage, live change notifications
-lib/rsvp.js            tokenizer, sentence + title detection, focal letter, timing
+lib/rsvp.js            tokenizer, sentence/title/link detection, focal letter, timing
 lib/reader-ui.js       the reader component (shadow DOM, controls, keyboard)
 content/hotkey.js      the only always-on script: Shift+R, and where you right-clicked
 content/extract.js     injected on demand — page text as blocks, headings marked
@@ -186,4 +203,3 @@ instant the reader picks it up.
 - The built-in PDF viewer. Copy the text and paste it in.
 - `file://` pages, unless you tick **Allow access to file URLs** on the extension's
   details page.
-- Pages opened before you installed the extension, until you reload them.
