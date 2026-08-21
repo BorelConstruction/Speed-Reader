@@ -86,7 +86,11 @@ function isEmptyPayload(payload) {
   });
 }
 
-/* Inject content/extract.js and call one of its entry points. */
+/* Inject content/extract.js and call one of its entry points.
+ *
+ * Returns { payload, frameId } — the frame matters: when the reader closes we
+ * ask that same frame to select the word you stopped on, and only it still
+ * holds the DOM anchor the text came from. */
 async function extract(tabId, frameId, method) {
   var target = typeof frameId === 'number'
     ? { tabId: tabId, frameIds: [frameId] }
@@ -101,7 +105,9 @@ async function extract(tabId, frameId, method) {
     });
     for (var i = 0; i < results.length; i++) {
       var value = results[i] && results[i].result;
-      if (!isEmptyPayload(value)) return value;
+      if (!isEmptyPayload(value)) {
+        return { payload: value, frameId: results[i].frameId || 0 };
+      }
     }
   } catch (err) {
     /* restricted page, or the frame went away */
@@ -115,7 +121,10 @@ async function readSelection(tabId, frameId) {
 
   // Flat fallback for frames where extract.js couldn't run. Loses headings,
   // but the tokenizer's own heuristics still get a shot at the line breaks.
-  return await selectionText(tabId, frameId);
+  return {
+    payload: await selectionText(tabId, frameId),
+    frameId: typeof frameId === 'number' ? frameId : 0
+  };
 }
 
 /* Plain-string selection — also what the popup shows as a preview, where
@@ -142,7 +151,29 @@ async function selectionText(tabId, frameId) {
  * the frame that was clicked, and pull everything from there to the end of the
  * surrounding article. */
 async function readFromHere(tabId, frameId) {
-  return await extract(tabId, typeof frameId === 'number' ? frameId : 0, 'blocksFromHere') || '';
+  var at = typeof frameId === 'number' ? frameId : 0;
+  return await extract(tabId, at, 'blocksFromHere') || { payload: '', frameId: at };
+}
+
+/* Which frame a tab's current read came from. Kept in session storage rather
+ * than a variable so it survives the service worker being evicted mid-read. */
+function sourceKey(tabId) { return 'source:' + tabId; }
+
+async function rememberSource(tabId, frameId) {
+  try {
+    var patch = {};
+    patch[sourceKey(tabId)] = typeof frameId === 'number' ? frameId : 0;
+    await chrome.storage.session.set(patch);
+  } catch (err) { /* nothing depends on this succeeding */ }
+}
+
+async function sourceFrame(tabId) {
+  try {
+    var key = sourceKey(tabId);
+    var stored = await chrome.storage.session.get(key);
+    if (stored && typeof stored[key] === 'number') return stored[key];
+  } catch (err) { /* fall through */ }
+  return 0;
 }
 
 async function toast(tabId, message) {
@@ -159,11 +190,13 @@ async function toast(tabId, message) {
 
 /* Inject the reader into the top frame of `tabId` and hand it the text.
  * Re-injection is safe: every file is wrapped in an IIFE. */
-async function startReading(tabId, payload, emptyMessage) {
+async function startReading(tabId, payload, frameId, emptyMessage) {
   if (isEmptyPayload(payload)) {
     await toast(tabId, emptyMessage || 'SpeedReader: select some text first.');
     return { ok: false, error: 'no-text' };
   }
+
+  await rememberSource(tabId, frameId);
 
   try {
     await chrome.scripting.executeScript({
@@ -193,14 +226,14 @@ chrome.contextMenus.onClicked.addListener(async function (info, tab) {
 
   if (info.menuItemId === MENU_SELECTION) {
     var selected = await readSelection(tab.id, info.frameId);
-    if (isEmptyPayload(selected)) selected = info.selectionText || '';
-    await startReading(tab.id, selected);
+    var payload = isEmptyPayload(selected.payload) ? (info.selectionText || '') : selected.payload;
+    await startReading(tab.id, payload, selected.frameId);
     return;
   }
 
   if (info.menuItemId === MENU_HERE) {
     var onward = await readFromHere(tab.id, info.frameId);
-    await startReading(tab.id, onward, NOTHING_HERE);
+    await startReading(tab.id, onward.payload, onward.frameId, NOTHING_HERE);
   }
 });
 
@@ -209,9 +242,9 @@ chrome.commands.onCommand.addListener(async function (command) {
   var tab = await activeTab();
   if (!tab || tab.id == null) return;
   if (!canInject(tab.url)) return;
-  var payload = await readSelection(tab.id);
-  if (isEmptyPayload(payload)) payload = await readFromHere(tab.id, 0);   // fall back to the caret
-  await startReading(tab.id, payload, NOTHING_HERE);
+  var source = await readSelection(tab.id);
+  if (isEmptyPayload(source.payload)) source = await readFromHere(tab.id, 0);   // fall back to the caret
+  await startReading(tab.id, source.payload, source.frameId, NOTHING_HERE);
 });
 
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
@@ -224,9 +257,9 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
     var tabId = sender.tab && sender.tab.id;
     if (tabId == null) return undefined;
     (async function () {
-      var payload = await readSelection(tabId, sender.frameId);
-      if (isEmptyPayload(payload)) payload = message.text || '';
-      sendResponse(await startReading(tabId, payload));
+      var source = await readSelection(tabId, sender.frameId);
+      var payload = isEmptyPayload(source.payload) ? (message.text || '') : source.payload;
+      sendResponse(await startReading(tabId, payload, source.frameId));
     })();
     return true;
   }
@@ -236,8 +269,8 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
     var hereTabId = sender.tab && sender.tab.id;
     if (hereTabId == null) return undefined;
     (async function () {
-      var text = await readFromHere(hereTabId, sender.frameId);
-      sendResponse(await startReading(hereTabId, text, NOTHING_HERE));
+      var here = await readFromHere(hereTabId, sender.frameId);
+      sendResponse(await startReading(hereTabId, here.payload, here.frameId, NOTHING_HERE));
     })();
     return true;
   }
@@ -253,9 +286,9 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
       if (id == null) { sendResponse({ ok: false, error: 'no-tab' }); return; }
       // The popup passes the plain text it previewed; prefer a structured
       // re-read of the same (still live) selection so headings survive.
-      var payload = await readSelection(id);
-      if (isEmptyPayload(payload)) payload = message.text || '';
-      sendResponse(await startReading(id, payload));
+      var source = await readSelection(id);
+      var payload = isEmptyPayload(source.payload) ? (message.text || '') : source.payload;
+      sendResponse(await startReading(id, payload, source.frameId));
     })();
     return true;
   }
@@ -269,6 +302,31 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
       }
       if (id == null) { sendResponse({ text: '' }); return; }
       sendResponse({ text: await selectionText(id) });
+    })();
+    return true;
+  }
+
+  if (message.type === 'sr-stopped-at') {
+    // The reader closed. Mark the word it stopped on in the frame the text came
+    // from — that frame is the only one still holding the DOM anchor.
+    var stopTab = sender.tab && sender.tab.id;
+    if (stopTab == null) return undefined;
+    (async function () {
+      var frameId = await sourceFrame(stopTab);
+      var target = { tabId: stopTab, frameIds: [frameId] };
+      var marked = false;
+      try {
+        await chrome.scripting.executeScript({ target: target, files: ['content/extract.js'] });
+        var results = await chrome.scripting.executeScript({
+          target: target,
+          func: function (at, word) { return window.SpeedReader.selectWord(at, word); },
+          args: [message.wordIndex, message.word || '']
+        });
+        marked = !!(results && results[0] && results[0].result);
+      } catch (err) {
+        /* frame navigated away, or the page is restricted now */
+      }
+      sendResponse({ ok: marked });
     })();
     return true;
   }

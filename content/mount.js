@@ -8,6 +8,8 @@
   var NS = (window.SpeedReader = window.SpeedReader || {});
   var HOST_ID = '__speedreader_host__';
 
+  var reopening = false;
+
   NS.close = function close() {
     if (NS._active) NS._active.destroy();
   };
@@ -16,7 +18,10 @@
   NS.open = function open(payload) {
     if (NS.Rsvp.isEmpty(payload)) return;
 
+    // Replacing one read with another isn't stopping, so don't drop a bookmark.
+    reopening = true;
     NS.close();
+    reopening = false;
 
     var existing = document.getElementById(HOST_ID);
     if (existing) existing.remove();
@@ -37,6 +42,17 @@
         text: payload,
         settings: settings,
         autoplay: false,        // open on the first word; Space starts it
+        onStop: function (wordIndex, word) {
+          if (reopening) return;
+          // The worker knows which frame the text came from — it may not be
+          // this one — so let it place the selection there.
+          try {
+            chrome.runtime.sendMessage(
+              { type: 'sr-stopped-at', wordIndex: wordIndex, word: word },
+              function () { void chrome.runtime.lastError; }
+            );
+          } catch (err) { /* extension reloaded out from under the page */ }
+        },
         onClose: function () {
           NS._active = null;
           window.__SPEEDREADER_MOUNTED__ = false;

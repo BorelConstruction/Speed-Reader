@@ -39,9 +39,15 @@
     try { selection = window.getSelection(); } catch (err) { selection = null; }
 
     var text = selection ? String(selection) : '';
+    var bookmark = window.__SPEEDREADER_RESUME__;
     var message;
 
-    if (text.trim()) {
+    if (text.trim() && bookmark && bookmark.text === text) {
+      // This selection is the bookmark the reader left on the word you stopped
+      // at. Carry on from there instead of re-reading that one word. Compared
+      // by value, so the moment you select anything else this stops applying.
+      message = { type: 'sr-start-here' };
+    } else if (text.trim()) {
       message = { type: 'sr-start', text: text };
     } else if (selection && selection.rangeCount &&
                selection.getRangeAt(0).startContainer.nodeType === 3) {

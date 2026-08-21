@@ -51,6 +51,19 @@ the start of that selection rather than to the pointer — so if a page makes pr
 clicking awkward, highlight a single character to mark the spot and pick "Speed read
 from here" instead of "Speed read selection".
 
+## Stopping, and picking up again
+
+Close the reader and the word you stopped on is selected on the page underneath, and
+scrolled into view — a bookmark you can actually see.
+
+Press `Shift`+`R` again and it resumes from there rather than re-reading that single
+word. That only applies to the bookmark the reader left: select anything else
+yourself and `Shift`+`R` goes straight back to reading exactly what you selected.
+
+If the page has re-rendered underneath you — an infinite scroll loaded, a single-page
+app swapped the article out — the word won't be where it was, and nothing is
+selected rather than something arbitrary being highlighted.
+
 ## Keys while reading
 
 | Key | Does |
@@ -122,6 +135,16 @@ Which lines count as titles is settled by whatever evidence is available:
   punctuation.** A block qualifies if it's short (≤ 12 words, or ≤ 22 when bold),
   doesn't end in `.` `!` `?` `…` `,` `;`, isn't a bullet or numbered item, contains no
   internal sentence boundary, and has something under it.
+
+**Finding your place again.** The text handed to the reader has been through
+whitespace collapsing, URL collapsing and long-word chunking, none of which preserve
+character offsets — so mapping a token back to the page can't be done by counting
+characters. All three *do* preserve word boundaries though, which is exactly what
+`token.wordIndex` counts. So closing the reader re-walks the page from the same
+anchor, splitting on whitespace and block edges the same way, and stops at word *N*.
+No offset arithmetic, and it lands correctly on the awkward cases: a collapsed link
+selects the whole original URL, a chunked long word selects the whole word, and a
+word split across `<b>`…`</b>` selects across both nodes.
 
 **Links.** A URL spelled out letter by letter is unreadable at any speed, so it
 collapses to a single token that names the scheme and elides the rest:
