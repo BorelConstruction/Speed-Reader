@@ -6,12 +6,14 @@
   var NS = self.SpeedReader;
   var Settings = NS.Settings;
 
+  /* Two paragraphs, the first long enough to earn the second a paragraph mark,
+   * so the preview shows whichever mark is chosen. */
   var SAMPLE = [
     'Rapid serial visual presentation shows one word at a time in a fixed spot,',
     'so your eyes stop hopping across the line and simply hold still.',
-    'The letter in red is the focal point of each word — keep your gaze on it.',
-    'Everything around it stays faintly visible, so you never lose the thread.'
-  ].join(' ');
+    'The letter in red is the focal point of each word — keep your gaze on it.'
+  ].join(' ') + '\n' +
+    'Everything around it stays faintly visible, so you never lose the thread.';
 
   var SPEED_FIELD = {
     key: 'wpm',
@@ -26,7 +28,7 @@
   var APPEARANCE_KEYS = [
     'readerWidth', 'fontSize', 'fontFamily', 'highlightColor',
     'showContext', 'contextOpacity', 'contextWords',
-    'theme', 'backdropOpacity', 'showPivotLines'
+    'theme', 'backdropOpacity', 'showPivotLines', 'paragraphMark'
   ];
 
   var READING_KEYS = ['showContext', 'contextWords'];

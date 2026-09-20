@@ -102,6 +102,7 @@ open. Settings sync across your signed-in browsers.
 | Font size | 40 px | |
 | Font | Sans | Sans / serif / mono |
 | Pivot marks | on | The small ticks above and below the focal letter |
+| Paragraph mark | ¶ | What marks a new paragraph: ¶ § ● ▸ ▬, or none |
 
 ## How it works
 
@@ -145,6 +146,30 @@ anchor, splitting on whitespace and block edges the same way, and stops at word 
 No offset arithmetic, and it lands correctly on the awkward cases: a collapsed link
 selects the whole original URL, a chunked long word selects the whole word, and a
 word split across `<b>`…`</b>` selects across both nodes.
+
+**Paragraph marks.** When a new paragraph follows a substantial one (30 words or
+more), its first word is preceded by a mark, so a paragraph break is something you
+*see* rather than something you infer from the pause:
+
+```
+…listeners very much included.  ¶  This second paragraph…
+```
+
+Pick the mark under **Paragraph mark** in the gear panel or on the Options page:
+`¶` pilcrow (the default — it's the paragraph sign, so it can't be mistaken for
+anything in the text), `§` section sign, `●` dot, `▸` triangle, `▬` bar, or none.
+The bar used to be the only choice, but in prose it reads rather too much like an
+em dash; it's still there if you like it.
+
+The mark travels with the text — you see it coming in the right-hand context, then
+trailing behind on the left — and it stays at full strength while the context around
+it is dimmed. It's drawn in the text colour rather than literally black, so it shows
+up in the dark theme too.
+
+After a short paragraph there's no mark: a caption or a line of dialogue doesn't need
+one, and marking every break would just be noise. Headings don't get one either —
+bold plus a five-times pause already announces them. The threshold is
+`PARAGRAPH_MARK_MIN_WORDS` in `lib/rsvp.js`.
 
 **Links.** A URL spelled out letter by letter is unreadable at any speed, so it
 collapses to a single token that names the scheme and elides the rest:
