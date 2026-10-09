@@ -103,6 +103,17 @@ open. Settings sync across your signed-in browsers.
 | Font | Sans | Sans / serif / mono |
 | Pivot marks | on | The small ticks above and below the focal letter |
 | Paragraph mark | ¶ | What marks a new paragraph: ¶ § ● ▸ ▬, or none |
+| When paused | Text around word | What pausing reveals — see below |
+| Lines when paused | 3 | Lines of text shown above and below the current word |
+
+**Pausing.** Pause and the text around your place appears, so you can look back
+at a name you half caught or reread a clause. **Text around word** (the default)
+leaves the word exactly where it was and fades in the text before it above and the
+text after it below, in a smaller font. **Show text** swaps the single word for the
+passage itself, wrapped like normal prose, with the current word marked on the
+middle line; the panel grows to fit. While paused, ←/→ walk through the words and clicking any
+word jumps there; play again and the text gets out of the way. **Nothing** keeps
+the classic single-word view.
 
 ## How it works
 

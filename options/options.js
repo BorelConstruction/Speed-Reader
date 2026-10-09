@@ -28,10 +28,11 @@
   var APPEARANCE_KEYS = [
     'readerWidth', 'fontSize', 'fontFamily', 'highlightColor',
     'showContext', 'contextOpacity', 'contextWords',
-    'theme', 'backdropOpacity', 'showPivotLines', 'paragraphMark'
+    'theme', 'backdropOpacity', 'showPivotLines', 'paragraphMark',
+    'pauseView', 'pauseLines'
   ];
 
-  var READING_KEYS = ['showContext', 'contextWords'];
+  var READING_KEYS = ['showContext', 'contextWords', 'pauseView', 'pauseLines'];
 
   function pick(keys) {
     return keys.map(function (key) {
