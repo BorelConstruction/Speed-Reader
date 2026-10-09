@@ -35,7 +35,7 @@
 
   var MAX_CHARS = 300000;      // a sane ceiling for a pathological page
   var POINT_MAX_AGE = 60000;   // ignore a right-click older than this
-  var BOLD_MAX_WORDS = 24;     // don't bother measuring longer blocks
+  var BOLD_MAX_WORDS = 24;     // longer than this, bold is no hint of a title
 
   /* Viewport point -> { node, offset }, as precise as the engine allows. */
   function positionFromPoint(x, y) {
@@ -104,19 +104,73 @@
     return false;
   }
 
-  /* Bold isn't proof of a title on its own — it's a hint the reader weighs
-   * alongside "short line, no closing punctuation". Tag first, because it's
-   * free; only then pay for a computed style. */
+  function weightOf(element) {
+    var weight = window.getComputedStyle(element).fontWeight;
+    if (weight === 'bold' || weight === 'bolder') return 700;
+    return parseInt(weight, 10) || 400;
+  }
+
+  /* Asked of every text node: bold words stay bold in the reader, and a block
+   * that's bold throughout is a hint of a title — not proof on its own, but
+   * weighed alongside "short line, no closing punctuation".
+   *
+   * The computed weight has the last word, not the tag. Google Docs wraps a
+   * whole paste in <b style="font-weight:normal">, and a page can reset
+   * <strong> to normal, and neither looks bold. But on a light page <strong>
+   * only makes it to 400 — bolder than 300 — and that does stand out, so a
+   * tag counts when it's heavier than the text around it. */
   function isBold(element) {
     if (!element || element.nodeType !== 1) return false;
-    if (element.closest && element.closest('strong,b')) return true;
     try {
-      var weight = window.getComputedStyle(element).fontWeight;
-      if (weight === 'bold' || weight === 'bolder') return true;
-      return parseInt(weight, 10) >= 600;
+      var weight = weightOf(element);
+      if (weight >= 600) return true;
+      var tag = element.closest('strong,b');
+      return !!(tag && tag.parentElement && weight > weightOf(tag.parentElement));
     } catch (err) {
-      return false;
+      return !!(element.closest && element.closest('strong,b'));
     }
+  }
+
+  /* Which words of a block are bold, as [from, to) ranges of word indices —
+   * a run-in heading opening a paragraph is [[0, 3]]. Words are counted the
+   * way the tokenizer will count them, split on whitespace, so the numbering
+   * lines up with its own. A word that changes weight partway goes with the
+   * majority of its letters, so "Note:" is bold even when the colon isn't. */
+  function boldRuns(parts) {
+    var runs = [];
+    if (!parts.some(function (part) { return part.bold; })) return runs;
+
+    var count = 0;
+    var word = null;
+
+    function endWord() {
+      if (!word) return;
+      var bold = word.letters ? word.boldLetters * 2 > word.letters : word.boldChars * 2 > word.chars;
+      if (bold) {
+        var last = runs[runs.length - 1];
+        if (last && last[1] === count) last[1]++;
+        else runs.push([count, count + 1]);
+      }
+      count++;
+      word = null;
+    }
+
+    parts.forEach(function (part) {
+      for (var i = 0; i < part.text.length; i++) {
+        var ch = part.text.charAt(i);
+        if (/\s/.test(ch)) { endWord(); continue; }
+        if (!word) word = { chars: 0, boldChars: 0, letters: 0, boldLetters: 0 };
+        var letter = /[\p{L}\p{N}]/u.test(ch);
+        word.chars++;
+        if (letter) word.letters++;
+        if (part.bold) {
+          word.boldChars++;
+          if (letter) word.boldLetters++;
+        }
+      }
+    });
+    endWord();
+    return runs;
   }
 
   /* Both walks below have to agree exactly on which nodes count, or the word
@@ -156,15 +210,20 @@
 
     function flush() {
       if (!current) return;
-      var text = current.parts.join('').replace(/[^\S\n]+/g, ' ').trim();
+      var text = current.parts.map(function (part) { return part.text; }).join('')
+        .replace(/[^\S\n]+/g, ' ').trim();
       if (text) {
         var block = { text: text };
         var element = current.element;
+        var runs = boldRuns(current.parts);
+        var words = text.split(/\s+/).length;
+        if (runs.length) block.boldRuns = runs;
         if (current.heading) {
           block.heading = true;
         } else if (element && element.closest && element.closest(NOT_A_TITLE)) {
           block.heading = false;
-        } else if (text.split(' ').length <= BOLD_MAX_WORDS && isBold(element)) {
+        } else if (words <= BOLD_MAX_WORDS && runs.length === 1 &&
+                   runs[0][0] === 0 && runs[0][1] === words) {
           block.bold = true;
         }
         blocks.push(block);
@@ -181,7 +240,7 @@
 
       if (!current) current = { parts: [], heading: false, element: parent };
       if (inHeading(parent)) current.heading = true;
-      current.parts.push(data);
+      current.parts.push({ text: data, bold: isBold(parent) });
       total += data.length;
     }
 

@@ -82,7 +82,7 @@ wherever they land. Paused, it stays paused.
 `↑` behaves like the track-back button on a music player: the first press returns to
 the start of the sentence you're in, the next takes you to the one before it. While
 reading, the line has moved on before you can press again, so a second press within
-about a second still counts.
+about a second still counts — even if a short sentence has played out in between.
 
 `←`, `→` and the wheel count whole words, so a long word broken into chunks is one
 step, not three. The wheel, unlike the arrows, does pause — it's for browsing, and
@@ -162,12 +162,22 @@ Which lines count as titles is settled by whatever evidence is available:
 - *Markup, when there is any.* `<h1>`–`<h6>`, `role="heading"`, `<dt>`, `<summary>`
   and `<legend>` are titles outright. `<li>`, `<td>` and `<th>` are outright **not** —
   the browser strips their bullet markers, so nothing downstream could tell.
-- *Weight.* `<strong>`, `<b>`, or any computed `font-weight` of 600 or more is a hint.
+- *Weight.* A block that's bold from first word to last is a hint.
 - *Shape*, for pasted text and anything the markup didn't settle. The strongest
   signal: **a line break with no sentence-finishing
   punctuation.** A block qualifies if it's short (≤ 12 words, or ≤ 22 when bold),
   doesn't end in `.` `!` `?` `…` `,` `;`, isn't a bullet or numbered item, contains no
   internal sentence boundary, and has something under it.
+
+**Bold.** Words the page sets in bold stay bold in the reader too — on the focused
+word, in the dimmed context either side, and in the text shown when paused — so a
+run-in heading like **Authors and narratives.** opening a paragraph still stands out
+from the sentence that follows. Bold means what the page actually shows: a computed
+`font-weight` of 600 or more, or a `<strong>`/`<b>` heavier than the text around it
+(on a light page that can be just 400). A `<b>` set back to normal weight doesn't
+count — Google Docs wraps whole pastes in one. A word that changes weight partway
+goes with the majority of its letters. Pasted text carries no formatting, so
+nothing in it is bold.
 
 **Finding your place again.** The text handed to the reader has been through
 whitespace collapsing, URL collapsing and long-word chunking, none of which preserve
