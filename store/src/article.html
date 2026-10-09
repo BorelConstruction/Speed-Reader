@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<!-- The page the store screenshots read from: a fictional blog post, written
+     for this purpose, so nothing on screen is anyone else's site or copy.
+     It carries no script of its own; store/render.mjs drives it. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Your eyes don’t glide across the page — Paper &amp; Pupil</title>
+  <link rel="stylesheet" href="article.css">
+</head>
+<body>
+  <header class="site">
+    <div class="site-inner">
+      <a class="brand" href="#">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="2"/>
+          <circle cx="12" cy="12" r="4" fill="currentColor"/>
+        </svg>
+        Paper &amp; Pupil
+      </a>
+      <nav>
+        <a href="#">Essays</a>
+        <a href="#">Notes</a>
+        <a href="#">Archive</a>
+        <a href="#">About</a>
+        <a href="#" class="subscribe">Subscribe</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page">
+    <article>
+      <p class="kicker">How reading works</p>
+      <h1>Your eyes don’t glide across the page. They leap.</h1>
+      <p class="dek">Reading feels like one smooth motion. Up close it is a rapid string of
+        jumps and pauses — and almost all of the work happens while your eyes stand still.</p>
+      <p class="meta">Essay <span>·</span> 2 min read</p>
+
+      <!-- One line of "text" with a reader's eye path drawn over it. -->
+      <figure class="banner">
+        <svg viewBox="0 0 680 132" role="img" aria-label="Eye movements across one line of text">
+          <rect width="680" height="132" rx="14" fill="#f1ede4"/>
+          <g fill="#cdc6b9">
+            <rect x="28"  y="92" width="46" height="13" rx="6.5"/>
+            <rect x="84"  y="92" width="22" height="13" rx="6.5"/>
+            <rect x="116" y="92" width="74" height="13" rx="6.5"/>
+            <rect x="200" y="92" width="34" height="13" rx="6.5"/>
+            <rect x="244" y="92" width="88" height="13" rx="6.5"/>
+            <rect x="342" y="92" width="28" height="13" rx="6.5"/>
+            <rect x="380" y="92" width="60" height="13" rx="6.5"/>
+            <rect x="450" y="92" width="44" height="13" rx="6.5"/>
+            <rect x="504" y="92" width="80" height="13" rx="6.5"/>
+            <rect x="594" y="92" width="58" height="13" rx="6.5"/>
+          </g>
+          <g fill="none" stroke="#2b59c3" stroke-width="2" stroke-linecap="round" opacity=".55">
+            <path d="M54 52 Q100 18 146 49"/>
+            <path d="M146 49 Q208 14 270 53"/>
+            <path d="M270 53 Q330 18 390 51"/>
+            <path d="M390 51 Q438 16 486 52"/>
+            <path d="M432 55 Q517 10 602 50"/>
+          </g>
+          <path d="M484 71 Q459 90 434 68" fill="none" stroke="#c4552b" stroke-width="2"
+                stroke-dasharray="4 4" stroke-linecap="round"/>
+          <g fill="#2b59c3">
+            <circle cx="54"  cy="62" r="10"/>
+            <circle cx="146" cy="62" r="13"/>
+            <circle cx="270" cy="62" r="9"/>
+            <circle cx="390" cy="62" r="11"/>
+            <circle cx="486" cy="62" r="10"/>
+            <circle cx="602" cy="62" r="12"/>
+          </g>
+          <circle cx="432" cy="62" r="7" fill="#c4552b"/>
+        </svg>
+        <figcaption>One line, seven stops. Circles are fixations — the bigger, the longer the
+          eye rests — arcs are saccades, and the dashed hop back is a regression.</figcaption>
+      </figure>
+
+      <div class="prose" id="story">
+        <p>Watch a friend read and you will notice it straight away: their eyes do not slide
+          along a line the way a fingertip might. They hop. Each hop is a
+          <strong>saccade</strong>, a movement so quick that it is over in a few hundredths of
+          a second, and so frequent that an ordinary page of prose can take several hundred
+          of them.</p>
+
+        <p>Between the hops come the pauses, and that is where reading actually happens.
+          These pauses are called <strong>fixations</strong>, and a typical one lasts about a
+          quarter of a second. In that moment the sharp centre of your vision takes in roughly
+          one word, while the blurrier edge picks up clues about the next: how long it is, and
+          the shape of its first few letters.</p>
+
+        <h2>What happens mid-jump</h2>
+
+        <p>Your brain is not idle during a saccade, but it is not reading either. Vision is
+          largely switched off mid-jump, which is why the room never seems to smear sideways
+          when you glance across it. Add up all those tiny blackouts and a surprising slice of
+          reading time is spent travelling rather than seeing.</p>
+
+        <p>Roughly one jump in eight goes backwards. These regressions are how we repair a
+          misread word, or a sentence that took an unexpected turn. Rapid serial visual
+          presentation — showing words one at a time in a single spot — takes the travelling
+          out of the picture: the text comes to your eyes, so they can stay put on the letter
+          that matters.</p>
+      </div>
+    </article>
+
+    <aside class="rail">
+      <section>
+        <h3>More on reading</h3>
+        <ol class="more">
+          <li><a href="#">Why long lines make you lose your place</a><span>4 min</span></li>
+          <li><a href="#">What your eyes do at the end of a line</a><span>5 min</span></li>
+          <li><a href="#">The case for reading aloud, quietly</a><span>6 min</span></li>
+          <li><a href="#">Skimming is a skill, not a sin</a><span>3 min</span></li>
+        </ol>
+      </section>
+      <section class="about">
+        <h3>About</h3>
+        <p>A small blog about perception, attention and the everyday craft of reading.
+          New essays most months.</p>
+      </section>
+    </aside>
+  </main>
+</body>
+</html>

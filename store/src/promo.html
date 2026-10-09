@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<!-- The 440×280 small promo tile. The store's advice for it: simple, saturated,
+     little text, the brand mark, readable at half size, no big pale areas. So:
+     the extension's own charcoal with a sweep of its red; the mark; the name,
+     its focal letter in red the way the reader would show it; and five words
+     on how it works. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>SpeedReader promo tile</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body { width: 440px; height: 280px; overflow: hidden; }
+
+    body {
+      display: flex; align-items: center; justify-content: center;
+      /* A sweep from a deep take on the highlight red into the reader's own
+         charcoal (#15181d): saturated where it counts, dark everywhere else. */
+      background: linear-gradient(135deg, #82202a 0%, #3b1a20 38%, #15181d 78%);
+      color: #f2f4f7;
+      font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .lockup { display: flex; align-items: center; gap: 22px; }
+
+    /* The icon, as drawn by SHAPES in icons/make-icons.mjs (scaled ×1000).
+       The tile is the icon's own colour, so a hairline and a shadow lift it. */
+    .mark {
+      width: 96px; height: 96px; flex: none;
+      filter: drop-shadow(0 10px 22px rgba(0, 0, 0, .5));
+    }
+
+    .name {
+      font-size: 43px; font-weight: 700; letter-spacing: -0.025em; line-height: 1.05;
+    }
+    .name .focal { color: #e5484d; }
+
+    .tagline {
+      margin-top: 8px; font-size: 20px; font-weight: 600; line-height: 1.2;
+      color: #d6c6c9; letter-spacing: -0.005em;
+    }
+  </style>
+</head>
+<body>
+  <div class="lockup">
+    <svg class="mark" viewBox="0 0 1000 1000" aria-hidden="true">
+      <rect x="0" y="0" width="1000" height="1000" rx="220" fill="#15181d"/>
+      <rect x="4" y="4" width="992" height="992" rx="216" fill="none" stroke="#ffffff" stroke-opacity=".10" stroke-width="8"/>
+      <rect x="125" y="452" width="280" height="96" rx="48" fill="#8b93a1"/>
+      <rect x="595" y="452" width="280" height="96" rx="48" fill="#8b93a1"/>
+      <rect x="452" y="245" width="96" height="510" rx="48" fill="#e5484d"/>
+    </svg>
+    <div>
+      <div class="name">Spe<span class="focal">e</span>dReader</div>
+      <div class="tagline">One word at a time</div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,104 @@
+/* The fictional blog the store screenshots sit on. Deliberately an ordinary,
+ * calm editorial page: it is the backdrop, and the reader has to stay the
+ * thing you look at. Light only — a reading blog on warm paper. */
+
+:root {
+  --paper: #faf8f4;
+  --ink: #1f2328;
+  --muted: #6b6f76;
+  --rule: #e7e2d9;
+  --accent: #2b59c3;
+  --serif: Charter, "Iowan Old Style", Georgia, "Times New Roman", serif;
+  --sans: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { background: var(--paper); }
+
+body {
+  color: var(--ink);
+  font: 19px/1.7 var(--serif);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* A selection that reads as the page's own, not the OS default blue slab. */
+::selection { background: #cddcfb; }
+
+a { color: inherit; text-decoration: none; }
+
+/* --- site header --- */
+
+.site { border-bottom: 1px solid var(--rule); background: var(--paper); }
+.site-inner {
+  max-width: 1120px; margin: 0 auto; height: 64px; padding: 0 32px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.brand {
+  display: flex; align-items: center; gap: 10px;
+  font: 700 20px/1 var(--serif); letter-spacing: -0.01em;
+}
+.brand svg { width: 22px; height: 22px; color: var(--accent); }
+nav { display: flex; align-items: center; gap: 28px; font: 15px/1 var(--sans); color: var(--muted); }
+nav .subscribe {
+  color: var(--accent); border: 1px solid currentColor; border-radius: 999px; padding: 8px 16px;
+}
+
+/* --- layout ---
+ * Article on the left, a quiet rail on the right — the usual blog shape, and
+ * it leaves the top-right corner, where an extension popup drops down, over
+ * the rail rather than over the headline. */
+
+.page {
+  max-width: 1120px; margin: 0 auto; padding: 0 32px;
+  display: grid; grid-template-columns: 680px 1fr; gap: 72px;
+}
+
+/* --- article ---
+ * The top padding (and the rail's, to match) is set so the 800 px frame ends
+ * in the gap between the first two paragraphs, rather than slicing through a
+ * line's descenders and selection band, which reads as a careless crop
+ * instead of "the page goes on". Change the copy or the type above the
+ * story and the bottom edge of screenshot 5 needs another look. */
+
+article { padding: 78px 0 90px; min-width: 0; }
+
+.kicker {
+  font: 700 12.5px/1 var(--sans); letter-spacing: .13em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 16px;
+}
+
+h1 { font: 700 44px/1.14 var(--serif); letter-spacing: -0.015em; margin-bottom: 16px; }
+
+.dek { font-size: 21px; line-height: 1.5; color: var(--muted); margin-bottom: 18px; }
+
+.meta { font: 14px/1 var(--sans); color: var(--muted); margin-bottom: 28px; }
+.meta span { margin: 0 6px; }
+
+.banner { margin: 0 0 30px; }
+.banner svg { display: block; width: 100%; height: auto; }
+.banner figcaption { font: 14px/1.5 var(--sans); color: var(--muted); margin-top: 10px; }
+
+.prose p + p { margin-top: 1.05em; }
+.prose h2 { font: 700 27px/1.25 var(--serif); letter-spacing: -0.01em; margin: 1.5em 0 .55em; }
+.prose strong { font-weight: 700; }
+
+/* --- rail --- */
+
+.rail { padding-top: 82px; font-family: var(--sans); }
+.rail section + section { margin-top: 34px; }
+.rail h3 {
+  font: 700 12px/1 var(--sans); letter-spacing: .12em; text-transform: uppercase;
+  color: var(--muted); padding-bottom: 12px; border-bottom: 1px solid var(--rule);
+}
+.more { list-style: none; counter-reset: more; }
+.more li {
+  counter-increment: more; display: grid; grid-template-columns: 26px 1fr; row-gap: 2px;
+  padding: 14px 0; border-bottom: 1px solid var(--rule);
+}
+.more li::before {
+  content: counter(more); grid-row: span 2; font: 700 20px/1.2 var(--serif); color: var(--accent);
+}
+.more a { font: 700 17px/1.35 var(--serif); }
+.more span { font-size: 13px; color: var(--muted); }
+.about p { font-size: 14.5px; line-height: 1.6; color: var(--muted); margin-top: 12px; }
