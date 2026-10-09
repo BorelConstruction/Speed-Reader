@@ -8,6 +8,10 @@
 *.crx
 *.zip
 
+# Store upload built by `node tools/pack.mjs`. *.zip above already catches the
+# zip itself; this keeps anything else that lands in the folder out as well.
+dist/
+
 # Scratch harnesses used to eyeball pages outside the extension sandbox.
 _preview*.html
 
