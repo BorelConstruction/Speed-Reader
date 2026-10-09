@@ -70,13 +70,26 @@ selected rather than something arbitrary being highlighted.
 | --- | --- |
 | `Space` | Play / pause |
 | `A` / `S` | Slower / faster, in 25 wpm steps (hold `Shift` for 100) |
-| `←` / `→` | One word back / forward |
+| `←` / `→` | Two words back / forward (hold `Shift` for one) |
+| Mouse wheel | Pause and move through the text — down is forward, one click is one press of `→` |
 | `↑` / `↓` | Previous / next sentence |
 | `Home` / `End` | Jump to the start / end |
 | `Esc` | Close the reader |
 
+The arrow keys don't stop the reader: press them mid-read and it carries on from
+wherever they land. Paused, it stays paused.
+
 `↑` behaves like the track-back button on a music player: the first press returns to
-the start of the sentence you're in, the next takes you to the one before it.
+the start of the sentence you're in, the next takes you to the one before it. While
+reading, the line has moved on before you can press again, so a second press within
+about a second still counts.
+
+`←`, `→` and the wheel count whole words, so a long word broken into chunks is one
+step, not three. The wheel, unlike the arrows, does pause — it's for browsing, and
+with the text around your place showing, scrolling through it reads much like
+scrolling a page. Each click of the wheel is counted as a click, so it moves two words
+whatever the page zoom or display scaling. A trackpad works too, its small movements
+adding up to a word for every half-click's worth.
 
 Everything is on-screen too — play/pause, skip a sentence either way, a 100–1000 wpm
 slider, and a progress bar you can click or drag to scrub. The counter and the
@@ -98,6 +111,7 @@ open. Settings sync across your signed-in browsers.
 | Context words | 12 | How many on each side |
 | Highlight | `#e5484d` | Colour of the focal letter |
 | Theme | Auto | Auto / dark / light |
+| Window colour | the theme's | Background of the reader window — see below |
 | Backdrop dim | 88% | How much the page behind is greyed out |
 | Font size | 40 px | |
 | Font | Sans | Sans / serif / mono |
@@ -111,9 +125,16 @@ at a name you half caught or reread a clause. **Text around word** (the default)
 leaves the word exactly where it was and fades in the text before it above and the
 text after it below, in a smaller font. **Show text** swaps the single word for the
 passage itself, wrapped like normal prose, with the current word marked on the
-middle line; the panel grows to fit. While paused, ←/→ walk through the words and clicking any
-word jumps there; play again and the text gets out of the way. **Nothing** keeps
-the classic single-word view.
+middle line; the panel grows to fit. While paused, ←/→ and the mouse wheel walk through
+the words and clicking any word jumps there; play again and the text gets out of the
+way. **Nothing** keeps the classic single-word view.
+
+**Window colour.** Paint the reader window any colour — cream or sepia for paper,
+a deep blue for night. The text switches between dark and light to whichever reads
+better on it, and the buttons, borders and progress track are mixed from those two
+colours, so they sit on your colour the way they sit on the stock white or charcoal.
+Only the window changes: the backdrop still follows the theme. **Reset** (or clearing
+the hex box) hands the colour back to the theme.
 
 ## How it works
 

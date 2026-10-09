@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "sr-harness",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["C:\\Users\\Vadim\\AppData\\Local\\Temp\\claude\\C--Users-Vadim-Downloads-SpeedReader\\536aa4c2-dd57-4d7b-84fa-95c8c6a0c2f5\\scratchpad\\serve.mjs", "C:\\Users\\Vadim\\Downloads\\SpeedReader", "8765"],
+      "port": 8765
+    }
+  ]
+}

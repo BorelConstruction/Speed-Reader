@@ -28,7 +28,7 @@
   var APPEARANCE_KEYS = [
     'readerWidth', 'fontSize', 'fontFamily', 'highlightColor',
     'showContext', 'contextOpacity', 'contextWords',
-    'theme', 'backdropOpacity', 'showPivotLines', 'paragraphMark',
+    'theme', 'panelColor', 'backdropOpacity', 'showPivotLines', 'paragraphMark',
     'pauseView', 'pauseLines'
   ];
 
@@ -74,6 +74,7 @@
   function set(key, value) {
     settings[key] = value;
     if (preview) preview.applySettings(settings);
+    if (key === 'theme') syncAll();   // an unset window colour's swatch shows the theme's
     pendingSave[key] = value;
     clearTimeout(saveTimer);
     saveTimer = setTimeout(flushSave, 250);
@@ -88,6 +89,14 @@
   }
 
   function syncAll() { syncers.forEach(function (fn) { fn(); }); }
+
+  // Under Auto, the OS switching light/dark changes the theme's window colour,
+  // which an unset Window colour swatch shows.
+  try {
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function () {
+      if (settings.theme === 'auto') syncAll();
+    });
+  } catch (err) { /* no matchMedia: nothing to follow */ }
 
   Settings.load().then(function (loaded) {
     settings = loaded;

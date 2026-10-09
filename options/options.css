@@ -66,7 +66,7 @@ h2 {
 .fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 10px 26px; }
 
 .sr-field {
-  display: grid; grid-template-columns: 118px 1fr 58px;
+  display: grid; grid-template-columns: 118px minmax(0, 1fr) 58px;
   align-items: center; gap: 11px; min-height: 28px; font-size: 13px;
 }
 .sr-field-label { color: var(--muted); }
@@ -90,16 +90,25 @@ h2 {
   width: 16px; height: 16px; accent-color: var(--hl); cursor: pointer; justify-self: start;
 }
 
-.sr-colour { display: flex; align-items: center; gap: 8px; }
+/* The hex box gives way before the row overflows, so Reset stays in view. */
+.sr-colour { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .sr-colour input[type=color] {
-  width: 34px; height: 26px; padding: 0; border: 1px solid var(--border);
+  flex: none; width: 34px; height: 26px; padding: 0; border: 1px solid var(--border);
   border-radius: 7px; background: none; cursor: pointer;
 }
 .sr-colour input[type=text] {
-  width: 92px; font: inherit; font-size: 12.5px; padding: 4px 7px; border-radius: 7px;
+  flex: 0 1 92px; width: 92px; min-width: 0;
+  font: inherit; font-size: 12.5px; padding: 4px 7px; border-radius: 7px;
   border: 1px solid var(--border); background: var(--field); color: var(--fg);
   font-variant-numeric: tabular-nums;
 }
+
+/* "Reset" beside an optional colour */
+.sr-link {
+  background: none; border: 0; padding: 0; font: inherit; font-size: 12.5px;
+  color: var(--muted); text-decoration: underline; cursor: pointer;
+}
+.sr-link:hover { color: var(--fg); }
 
 input:focus-visible, select:focus-visible, button:focus-visible {
   outline: 2px solid var(--hl); outline-offset: 2px;
