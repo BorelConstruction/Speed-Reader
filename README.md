@@ -113,6 +113,7 @@ open. Settings sync across your signed-in browsers.
 | Theme | Auto | Auto / dark / light |
 | Window colour | the theme's | Background of the reader window — see below |
 | Backdrop dim | 88% | How much the page behind is greyed out |
+| Dim while reading | 35% | How much darker it gets while words are playing — see below |
 | Font size | 40 px | |
 | Font | Sans | Sans / serif / mono |
 | Pivot marks | on | The small ticks above and below the focal letter |
@@ -135,6 +136,13 @@ better on it, and the buttons, borders and progress track are mixed from those t
 colours, so they sit on your colour the way they sit on the stock white or charcoal.
 Only the window changes: the backdrop still follows the theme. **Reset** (or clearing
 the hex box) hands the colour back to the theme.
+
+**Dim while reading.** While the words are playing, everything around the window
+darkens a little further, so the page behind recedes while you read; pause and it
+lifts again. It eases in over most of a second, so pressing play doesn't flash the
+screen, and it's darker, not just greyer, in the light theme too. Moving its slider
+in the gear panel shows the dim even while paused, so you can judge it. Set it to 0%
+to turn it off.
 
 ## How it works
 

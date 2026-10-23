@@ -46,9 +46,9 @@ for any other purpose.
 | Text you paste into the popup | `chrome.storage.local` | Deleted as soon as the reader tab has picked it up |
 | Which frame of a tab the current read came from (a tab number and a frame number, no text) | `chrome.storage.session` | Memory only. Chrome clears it when you quit the browser |
 
-**Settings** means these 15 values and nothing else: reading speed, reader width,
+**Settings** means these 16 values and nothing else: reading speed, reader width,
 whether the context words show, how many show and how dim they are, highlight
-colour, window colour, theme, backdrop dim, font size, font, pivot marks on or off,
+colour, window colour, theme, backdrop dim, dim while reading, font size, font, pivot marks on or off,
 paragraph mark, what pausing shows, and how many lines it shows. None of them
 contains anything you've read.
 

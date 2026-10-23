@@ -28,7 +28,7 @@
   var APPEARANCE_KEYS = [
     'readerWidth', 'fontSize', 'fontFamily', 'highlightColor',
     'showContext', 'contextOpacity', 'contextWords',
-    'theme', 'panelColor', 'backdropOpacity', 'showPivotLines', 'paragraphMark',
+    'theme', 'panelColor', 'backdropOpacity', 'readingDim', 'showPivotLines', 'paragraphMark',
     'pauseView', 'pauseLines'
   ];
 
